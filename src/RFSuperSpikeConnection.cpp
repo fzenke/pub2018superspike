@@ -1,5 +1,5 @@
 /* 
-* Copyright 2014-2015 Friedemann Zenke
+* Copyright 2014-2018 Friedemann Zenke
 *
 * This file is part of Auryn, a simulation package for plastic
 * spiking neural networks.
@@ -38,7 +38,7 @@ void RFSuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Aur
 
 	approximate = true; //!< when enabled small error signals are not back-propagated 
 	delta = 1e-5;    //!< quasi zero for presynaptic PSP
-	gamma = 1e-7;    //!< quasi zero norm for error signal ( this value should be set to float precision )
+	gamma = 1e-4;    //!< quasi zero norm for error signal ( this value should be set to float precision )
 
 
 	use_error_dependent_het_term = false;
@@ -89,7 +89,6 @@ void RFSuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Aur
 	const double b = tau_vrd_rise;
 	scale_tr_err_flt = 1.0/(std::pow((a*b)/(a-b),2)*(a/2+b/2-2*(a*b)/(a+b)))/tau_avg_err;
     // std::cout << scale_tr_err_flt << std::endl;
-	//
 
 	// pre trace 
 	tr_pre     = src->get_pre_trace(tau_syn_); // new EulerTrace( src->get_pre_size(), tau_syn );
@@ -97,6 +96,7 @@ void RFSuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Aur
 	tr_pre_psp->set_target(tr_pre);
 
 	tr_post_hom = dst->get_post_trace(100e-3);
+	hom4 = dst->get_state_vector("_hom4");
 
 	stdp_active = true; //!< Only blocks weight updates if disabled
 	plasticity_stack_enabled = true;
@@ -296,19 +296,23 @@ void RFSuperSpikeConnection::process_plasticity()
 	// }
 
 
+	// precompute fourth power before we go in the loop
+	hom4->copy(tr_post_hom);
+	hom4->pow(regexponent);
+
 	// CPUHOG
 	if ( use_error_dependent_het_term ) {
 		for (NeuronID li = 0; li < dst->get_post_size() ; ++li ) {
-			if ( approximate && std::abs(tr_err_flt->get(li)) < gamma ) { continue; }
+			if ( approximate && std::abs(tr_err_flt->get(li)) <= gamma ) { continue; }
 			const NeuronID gi = dst->rank2global(li); 
 			for (const NeuronID * c = bkw->get_row_begin(gi) ; 
 					c != bkw->get_row_end(gi) ; 
 					++c ) {
-				AurynWeight * weight = bkw->get_data(c); 
+				const AurynWeight * weight = bkw->get_data(c); 
 				const AurynLong didx = w->data_ptr_to_didx(weight); 
 				const AurynState e = tr_err_flt->get(li);
 				// AurynWeight de = el_val_flt->get(didx) * ( tr_err_flt->get(li) ) - regstrength * *weight * std::pow(tr_post_hom->get(li),4);  
-				AurynWeight de = ( el_val_flt->get(didx) - regstrength * *weight * std::pow(tr_post_hom->get(li),regexponent) * e ) * e; 
+				const AurynWeight de = ( el_val_flt->get(didx) - regstrength * *weight * hom4->get(li) * e ) * e; 
 				el_sum->add_specific(didx, de);
 			}
 		}
@@ -319,9 +323,9 @@ void RFSuperSpikeConnection::process_plasticity()
 			for (const NeuronID * c = bkw->get_row_begin(gi) ; 
 					c != bkw->get_row_end(gi) ; 
 					++c ) {
-				AurynWeight * weight = bkw->get_data(c); 
+				const AurynWeight * weight = bkw->get_data(c); 
 				const AurynLong didx = w->data_ptr_to_didx(weight); 
-				AurynWeight de = el_val_flt->get(didx) * ( tr_err_flt->get(li) ) - regstrength * *weight * std::pow(tr_post_hom->get(li),regexponent);  // BEST option
+				const AurynWeight de = el_val_flt->get(didx) * ( tr_err_flt->get(li) ) - regstrength * *weight * hom4->get(li);  // BEST option
 				el_sum->add_specific(didx, de);
 			}
 		}
@@ -378,23 +382,28 @@ void RFSuperSpikeConnection::evolve()
 
 	if ( auryn::sys->get_clock()%timestep_rmsprop_updates == 0  ) {
 
-		// evolve complex synapse parameters
-		for ( AurynLong k = 0; k < w->get_nonzero(); ++k ) {
-			// AurynWeight * weight = w->get_data_ptr(k, zid_weight);
-			AurynWeight * minibatch = w->get_data_ptr(k, zid_sum);
-			AurynWeight * g2 = w->get_data_ptr(k, zid_grad2);
-
-			// copies our low-pass value "minibatch" to grad and erases it
-			const AurynFloat grad = (*minibatch)/timestep_rmsprop_updates;
-			// *minibatch = 0.0f;
-
-			// update moving averages 
-			*g2 = std::max( grad*grad, rms_mul* *g2 );
-		}
-
 		double gm = 0.0;
-		if ( use_layer_lr ) {
-			gm =w->get_synaptic_state_vector(zid_grad2)->max();
+		if ( augment_gradient ) {
+			// evolve complex synapse parameters
+			for ( AurynLong k = 0; k < w->get_nonzero(); ++k ) {
+				// AurynWeight * weight = w->get_data_ptr(k, zid_weight);
+				AurynWeight * minibatch = w->get_data_ptr(k, zid_sum);
+				AurynWeight * g2 = w->get_data_ptr(k, zid_grad2);
+
+				// copies our low-pass value "minibatch" to grad and erases it
+				const AurynFloat grad = (*minibatch)/timestep_rmsprop_updates;
+				// *minibatch = 0.0f;
+
+				// update moving averages 
+				*g2 = std::max( grad*grad, rms_mul* *g2 );
+
+				// To implement RMSprop we  need this line
+				// *g2 = rms_mul* *g2 + (1.0-rms_mul)*std::pow(grad,2) ;
+			}
+
+			if ( use_layer_lr ) {
+				gm =w->get_synaptic_state_vector(zid_grad2)->max();
+			}
 		}
 
 
@@ -411,15 +420,15 @@ void RFSuperSpikeConnection::evolve()
 
 				// dynamic gradient rescaling
 				// (per parameter learning rate)
-			    if ( !use_layer_lr ) {
+				if ( !use_layer_lr ) {
 					gm = w->get_synaptic_state_vector(zid_grad2)->get(k);
 				}
-			
+
 				double rms_scale = 1.0;
-				if ( augment_gradient ) rms_scale = 1.0/(std::sqrt(gm)+epsilon); 
+				if ( augment_gradient ) rms_scale = 1.0/(std::sqrt(gm)+epsilon);
 		
 				// update weight
-				*weight += eta_ * grad * rms_scale;
+				*weight += rms_scale * grad * eta_ ;
 
 				// clip weight
 				if ( *weight < get_min_weight() ) *weight = get_min_weight();
