@@ -84,7 +84,6 @@ void SuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Auryn
 	scale_tr_err_flt = 1.0/(std::pow((a*b)/(a-b),2)*(a/2+b/2-2*(a*b)/(a+b)))/tau_avg_err;
     // std::cout << scale_tr_err_flt << std::endl;
 
-
 	// pre trace 
 	tr_pre     = src->get_pre_trace(tau_syn_); // new EulerTrace( src->get_pre_size(), tau_syn );
 	tr_pre_psp = new EulerTrace( src->get_pre_size(), tau_mem_ );
@@ -309,7 +308,7 @@ void SuperSpikeConnection::process_plasticity()
 		}
 	} else {
 		for (NeuronID li = 0; li < dst->get_post_size() ; ++li ) {
-			if ( approximate && std::abs(tr_err_flt->get(li)) <= gamma ) { continue; }
+			if ( approximate && std::abs(tr_err_flt->get(li)) < gamma ) { continue; }
 			const NeuronID gi = dst->rank2global(li); 
 			for (const NeuronID * c = bkw->get_row_begin(gi) ; 
 					c != bkw->get_row_end(gi) ; 
@@ -450,7 +449,6 @@ void SuperSpikeConnection::evolve()
 					gm = w->get_synaptic_state_vector(zid_grad2)->get(k);
 				}
 
-		
 				double rms_scale = 1.0;
 				if ( augment_gradient ) rms_scale = 1.0/(std::sqrt(gm)+epsilon);
 		
