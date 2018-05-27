@@ -44,8 +44,8 @@ ErrorConnection::ErrorConnection(
 {
 
 	logger->verbose("Initialzing ErrorConnection");
-	state_watcher = new StateWatcherGroup(source,"err");
-	set_target("err");
+	state_watcher = new StateWatcherGroup(src, "err");
+	connect_states("err", "err_input");
 
 	set_min_weight(-1e42); // whatever
 	set_max_weight(1e42);
@@ -55,9 +55,10 @@ ErrorConnection::~ErrorConnection()
 {
 }
 
-
-void ErrorConnection::connect_state( string state_name )
+void ErrorConnection::connect_states(string pre_name, string post_name)
 {
+	state_watcher->watch(src, pre_name);
+	set_target(post_name);
 }
 
 void ErrorConnection::propagate()

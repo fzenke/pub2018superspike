@@ -129,7 +129,7 @@ public:
 	virtual ~ErrorConnection();
 
 	/*! Sets the state name to connect between pre and post */
-	void connect_state(string state_name);
+	void connect_states(string pre_name, string post_name);
 	
 	/*! \brief Internally used propagate method
 	 *
