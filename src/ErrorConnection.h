@@ -1,5 +1,5 @@
 /* 
-* Copyright 2014-2018 Friedemann Zenke
+* Copyright 2014-2017 Friedemann Zenke
 *
 * This file is part of Auryn, a simulation package for plastic
 * spiking neural networks.
@@ -53,9 +53,9 @@ typedef ComplexMatrix<AurynWeight> ForwardMatrix;
 /*! \brief StateWatcherGroup is a SpikingGroup used by ErrorConnection
  *
  *
- * This SpikingGroup detects nonzero states in the source state vector and uses
- * Auryn spike propagation mechanisms to make these values known across nodes.
- * The group is used interally by ErrorConnection for sync purposes.
+ * This SpikingGroup detects nonzero states in the source state vector and uses Auryn spike propagation
+ * mechanisms to make these values known across nodes. The group is used interally by ErrorConnection for
+ * sync purposes.
  */
 
 class StateWatcherGroup : public SpikingGroup
@@ -87,7 +87,7 @@ class StateWatcherGroup : public SpikingGroup
 			// iterate over state vector and generate an event (a "spike") when ne zero
 			for (NeuronID li = 0; li < group_to_watch_->get_rank_size() ; ++li ) {
 				const AurynState v = state_to_watch_->get(li);
-				if ( v ) {
+				if ( v != 0.0 ) {
 					// std::cout << " foo " << std::endl;
 					spikes->push_back(group_to_watch_->rank2global(li));
 					attribs->push_back(v);
@@ -97,14 +97,14 @@ class StateWatcherGroup : public SpikingGroup
 		}
 };
 
-/*! \brief Acts like a sparseconnection, but instead of transmitting spikes it
- * transmits analog state values from a source state vector to a target state
- * vector. 
+/*! \brief Acts like a sparseconnection, but instead of transmitting spikes
+ * it transmits analog state values from a source state vector to a target 
+ * state vector. 
  *
- * As opposed to SparseStateConnectino, this class is parallel save, but should
- * only be used for sparse states which are rarely different from zero. Its
- * main purpose is to transmit downstream error signals back to hidden units in
- * superspike paradigms.
+ * As opposed to SparseStateConnectino, this class is parallel
+ * save, but should only be used for sparse states which are rarely different
+ * from zero. Its main purpose is to transmit downstream error signals back to
+ * hidden units in superspike paradigms.
  */
 
 class ErrorConnection : public SparseConnection
@@ -116,24 +116,19 @@ protected:
 public:
 	StateWatcherGroup * state_watcher;
 
-	/*! \brief Default constructor which sets up a random sparse matrix with
-	 * fixed weight between the source and destination group. 
+	/*! \brief Default constructor which sets up a random sparse matrix with fixed weight between the source and destination group. 
 	 *
-	 * The constructor takes the weight and sparseness as secondary arguments.
-	 * The latter allows Auryn to allocate the approximately right amount of
-	 * memory inadvance. It is good habit to specify at time of initialization
-	 * also a connection name and the transmitter type. Both can be set
-	 * separately with set_transmitter and set_name if the function call gets
-	 * too long and ugly. A connection name is often handy during debugging and
-	 * the transmitter type is a crucial for obvious resons ...  */
+	 * The constructor takes the weight and sparseness as secondary arguments. The latter allows Auryn to 
+	 * allocate the approximately right amount of memory inadvance. It is good habit to specify at time of initialization also 
+	 * a connection name and the transmitter type. Both can be set separately with set_transmitter and set_name if the function call gets
+	 * too long and ugly. A connection name is often handy during debugging and the transmitter type is a crucial for obvious resons ...  */
 	ErrorConnection(SpikingGroup * source, NeuronGroup * destination, 
 			AurynWeight weight, AurynFloat sparseness=0.05, 
 			TransmitterType transmitter=GLUT, string name="ErrorConnection");
 
-	/*! \brief The default destructor */
 	virtual ~ErrorConnection();
 
-	/*! \brief Sets the state name to connect between pre and post */
+	/*! Sets the state name to connect between pre and post */
 	void connect_state(string state_name);
 	
 	/*! \brief Internally used propagate method

@@ -71,7 +71,8 @@ void RFSuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Aur
 
 	trg = NULL; 
 	err = dst->get_state_vector("err");
-	target_error_vector = src->get_state_vector("err");
+	err_in = dst->get_state_vector("err_in");
+	target_error_vector = src->get_state_vector("err_in");
 
 	// traces for van Rossum Distance
 	tr_err = dst->get_post_state_trace(err, tau_vrd_rise);
@@ -110,8 +111,8 @@ void RFSuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Aur
 	delay_size = feedback_delay/auryn_timestep;
 	logger->parameter("delay_size", delay_size);
 
-	partial_delay = new AurynDelayVector( dst->get_post_size(), delay_size+1+MINDELAY );
-	pre_psp_delay = new AurynDelayVector( src->get_pre_size(), delay_size+1+MINDELAY ); 
+	partial_delay = new AurynDelayVector( dst->get_post_size(), delay_size+MINDELAY );
+	pre_psp_delay = new AurynDelayVector( src->get_pre_size(), delay_size+MINDELAY ); 
 
 	logger->debug("RFSuperSpikeConnection complex matrix init");
 	// Set number of synaptic states
@@ -213,6 +214,9 @@ void RFSuperSpikeConnection::add_to_err(NeuronID spk, AurynState val)
 
 void RFSuperSpikeConnection::compute_van_rossum_err()
 {
+	// reset
+	err->set_zero();
+
 	// Compute error signal
 	SpikeContainer * sc = dst->get_spikes();
 	for ( unsigned int i = 0 ; i < sc->size(); ++i ) add_to_err(sc->at(i), -1.0);
@@ -232,7 +236,6 @@ void RFSuperSpikeConnection::compute_err()
  * */
 void RFSuperSpikeConnection::process_plasticity()
 {
-
 	// compute partial deriviatives and store in delay
 	for ( NeuronID i = 0 ; i < dst->get_post_size() ; ++i )
 		partial_delay->set( i, instantaneous_partial(i) );
@@ -240,7 +243,6 @@ void RFSuperSpikeConnection::process_plasticity()
 	// compute psp and store in delay
 	for ( NeuronID j = 0 ; j < src->get_pre_size() ; ++j )
 		pre_psp_delay->set( j, tr_pre_psp->get(j) );
-
 
 	// loop over all pre neurons
 	for (NeuronID j = 0; j < src->get_pre_size() ; ++j ) {
@@ -263,7 +265,6 @@ void RFSuperSpikeConnection::process_plasticity()
 		}
 	}
 
-
 	partial_delay->advance(); // now 'get' points to the delayed version
 	pre_psp_delay->advance(); // now 'get' points to the delayed version
 
@@ -274,7 +275,6 @@ void RFSuperSpikeConnection::process_plasticity()
 
 	const AurynFloat scale_const = std::exp(-auryn_timestep/tau_el_rise);
 	el_val->scale(scale_const);
-
 
 	// # THIRD compute correlation between el_val_flt and the filtered error signal
 	// and store in el_sum 'the summed eligibilty trace'
@@ -369,7 +369,8 @@ void RFSuperSpikeConnection::evolve()
 	avgsqrerr->scale(mul_avgsqrerr);
 	avgsqrerr->add(temp);
 
-	err->set_zero();
+	err->copy(err_in);
+	err_in->set_zero();
 	if ( trg != NULL ) compute_err();
 
 	// add nonlinear Hebb (pre post correlations) to synaptic traces and filter these traces

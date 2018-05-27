@@ -65,7 +65,8 @@ void SuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Auryn
 
 	trg = NULL; 
 	err = dst->get_state_vector("err");
-	target_error_vector = src->get_state_vector("err");
+	err_in = dst->get_state_vector("err_in");
+	target_error_vector = src->get_state_vector("err_in");
 
 	// traces for van Rossum Distance
 	tr_err = dst->get_post_state_trace(err, tau_vrd_rise);
@@ -104,8 +105,8 @@ void SuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Auryn
 	delay_size = feedback_delay/auryn_timestep;
 	logger->parameter("delay_size", delay_size);
 
-	partial_delay = new AurynDelayVector( dst->get_post_size(), delay_size+1+MINDELAY );
-	pre_psp_delay = new AurynDelayVector( src->get_pre_size(), delay_size+1+MINDELAY ); 
+	partial_delay = new AurynDelayVector( dst->get_post_size(), delay_size+MINDELAY );
+	pre_psp_delay = new AurynDelayVector( src->get_pre_size(), delay_size+MINDELAY ); 
 
 
 	logger->debug("SuperSpikeConnection complex matrix init");
@@ -266,6 +267,7 @@ void SuperSpikeConnection::process_plasticity()
 	pre_psp_delay->advance(); // now 'get' points to the delayed version
 
 	// # SECOND compute outer convolution of synaptic traces
+	// a bit of a CPUHOG
 	const AurynFloat mul_follow = auryn_timestep/tau_el_decay;
 	el_val_flt->follow(el_val, mul_follow);
 
@@ -396,9 +398,9 @@ void SuperSpikeConnection::evolve()
 	avgsqrerr->scale(mul_avgsqrerr);
 	avgsqrerr->add(temp);
 
-	if ( trg != NULL ) {
-		compute_err();
-	}
+	err->copy(err_in);
+	err_in->set_zero();
+	if ( trg != NULL ) compute_err();
 
 	// add nonlinear Hebb (pre post correlations) to synaptic traces and filter these traces
 	process_plasticity();

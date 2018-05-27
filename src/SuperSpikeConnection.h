@@ -96,6 +96,7 @@ public:
 
 	// static std::set< SuperSpikeConnection* > m_instances;
 
+	AurynStateVector * err_in;
 	AurynStateVector * err;
 	AurynStateVector * avgsqrerr;
 	AurynStateVector * target_error_vector;

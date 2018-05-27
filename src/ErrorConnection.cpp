@@ -1,5 +1,5 @@
 /* 
-* Copyright 2014-2018 Friedemann Zenke
+* Copyright 2014-2017 Friedemann Zenke
 *
 * This file is part of Auryn, a simulation package for plastic
 * spiking neural networks.
@@ -84,6 +84,7 @@ void ErrorConnection::propagate()
 					++c ) {
 				AurynWeight value = data[c-ind] * attribute; 
 				transmit( *c , value );
+				// transmit( w->get_colind(c) , w->get_value(c) );
 			}
 		}
 	}
