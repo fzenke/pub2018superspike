@@ -19,7 +19,7 @@ LDFLAGS=$(BUILDDIR)/src/libauryn.a \
 #         -I$(AURYNDIR)/src -I$(AURYNDIR)/dev/src
 
 
-OBJECTS=SuperSpikeConnection.o RFSuperSpikeConnection.o ErrorConnection.o
+OBJECTS=SuperSpikeConnection.o RFSuperSpikeConnection.o ErrorConnection.o StateWatcherGroup.o
 SIMULATIONS=sim_symfb sim_rfb
 
 .SECONDARY:

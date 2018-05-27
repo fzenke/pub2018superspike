@@ -1,5 +1,5 @@
 /* 
-* Copyright 2014-2017 Friedemann Zenke
+* Copyright 2014-2018 Friedemann Zenke
 *
 * This file is part of Auryn, a simulation package for plastic
 * spiking neural networks.
@@ -45,7 +45,7 @@ ErrorConnection::ErrorConnection(
 
 	logger->verbose("Initialzing ErrorConnection");
 	state_watcher = new StateWatcherGroup(src, "err");
-	connect_states("err", "err_input");
+	connect_states("err", "err_in");
 
 	set_min_weight(-1e42); // whatever
 	set_max_weight(1e42);

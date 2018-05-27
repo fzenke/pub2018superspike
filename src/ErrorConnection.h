@@ -1,5 +1,5 @@
 /* 
-* Copyright 2014-2017 Friedemann Zenke
+* Copyright 2014-2018 Friedemann Zenke
 *
 * This file is part of Auryn, a simulation package for plastic
 * spiking neural networks.
@@ -32,6 +32,7 @@
 #include "auryn/SparseConnection.h"
 #include "auryn/System.h"
 #include "auryn/ComplexMatrix.h"
+#include "StateWatcherGroup.h"
 
 #include <sstream>
 #include <fstream>
@@ -49,53 +50,6 @@ namespace auryn {
 
 typedef ComplexMatrix<AurynWeight> ForwardMatrix;
 
-
-/*! \brief StateWatcherGroup is a SpikingGroup used by ErrorConnection
- *
- *
- * This SpikingGroup detects nonzero states in the source state vector and uses Auryn spike propagation
- * mechanisms to make these values known across nodes. The group is used interally by ErrorConnection for
- * sync purposes.
- */
-
-class StateWatcherGroup : public SpikingGroup
-{
-	private:
-		SpikingGroup * group_to_watch_;
-		AurynStateVector * state_to_watch_;
-
-	public:
-		StateWatcherGroup(SpikingGroup * group, string state_name) : SpikingGroup( group->get_size(), ROUNDROBIN ) 
-		{
-			sys->register_spiking_group(this); // TODO make sure this groups is evolved locally on all ranks
-
-			watch(group, state_name);
-
-			inc_num_spike_attributes(1);
-			set_name("State watcher");
-			
-			// logger->warning("REMOVE ME CODE MARKER");
-		}
-
-		void watch(SpikingGroup * group, string state_name) {
-			group_to_watch_ = group;
-			state_to_watch_ = group_to_watch_->get_state_vector(state_name);
-		}
-
-		virtual void evolve() 
-		{
-			// iterate over state vector and generate an event (a "spike") when ne zero
-			for (NeuronID li = 0; li < group_to_watch_->get_rank_size() ; ++li ) {
-				const AurynState v = state_to_watch_->get(li);
-				if ( v != 0.0 ) {
-					// std::cout << " foo " << std::endl;
-					spikes->push_back(group_to_watch_->rank2global(li));
-					attribs->push_back(v);
-					// state_to_watch_->set(li,0.0);
-				}
-			}
-		}
-};
 
 /*! \brief Acts like a sparseconnection, but instead of transmitting spikes
  * it transmits analog state values from a source state vector to a target 
