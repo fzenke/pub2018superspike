@@ -375,9 +375,9 @@ int main(int ac, char* av[])
 		NeuronGroup  * etrg = hidden_layers[l]->neurons;
 		// SparseStateConnection * scon = new SparseStateConnection(neurons_out, etrg, 1.0, 1.0);
 		// scon->connect_state("err");
+		logger->msg("Adding long-range feedback connection", PROGRESS, true);
 		ErrorConnection * scon = new ErrorConnection(neurons_out, etrg, 1.0, 1.0);
 		scon->random_data(0.0,1.0);
-		logger->msg("Adding long-range feedback connection", PROGRESS, true);
 	}
 	
 	// However, we are using symmetric feedback
