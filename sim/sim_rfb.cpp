@@ -330,7 +330,7 @@ int main(int ac, char* av[])
 
 
 	logger->msg("Connecting hidden layers ...", PROGRESS, true);
-	double eta_hidden = eta; // dividing here did help in some cases
+	double eta_hidden = eta;
 	std::vector<HiddenLayer*> hidden_layers;
 	SpikingGroup * upstream = fin;
 	HiddenLayer * hidden_layer;
@@ -370,7 +370,7 @@ int main(int ac, char* av[])
 
 
 
-	logger->msg("Setting up random feedback...", PROGRESS, true);
+	// logger->msg("Setting up random feedback...", PROGRESS, true);
 	for ( NeuronID l = 0 ; l < num_hidden_layers ; ++l ) {
 		NeuronGroup  * etrg = hidden_layers[l]->neurons;
 		// SparseStateConnection * scon = new SparseStateConnection(neurons_out, etrg, 1.0, 1.0);
@@ -406,7 +406,7 @@ int main(int ac, char* av[])
 
 	if ( record_states ) {
 		for ( unsigned int i = 0; i < std::min(nout, (unsigned int)2); ++i ) {
-			StateMonitor * errmon = new StateMonitor( neurons_out, i, "err", sys->fn("multi",i,"err"));
+			StateMonitor * errmon = new StateMonitor( con_out->tr_err_flt, i, sys->fn("multi",i,"err"));
 			errmon->record_for(test_time);
 			statemons.push_back(errmon);
 			StateMonitor * parmon = new StateMonitor( con_out->partial_delay, i, sys->fn("multi",i,"par"),1e-4);
@@ -423,7 +423,7 @@ int main(int ac, char* av[])
 		if ( hidden_layers.size() ) {
 
 			for ( NeuronID i = 0; i < 8; ++i ) {
-				StateMonitor * errmon = new StateMonitor( hidden_layers[0]->neurons, i, "err", sys->fn("multi_hidden",i,"err"));
+				StateMonitor * errmon = new StateMonitor( hidden_layers[0]->con->tr_err_flt, i, sys->fn("multi_hidden",i,"err"));
 				errmon->record_for(test_time);
 				statemons.push_back(errmon);
 				StateMonitor * parmon = new StateMonitor( hidden_layers[0]->con->partial_delay, i, sys->fn("multi_hidden",i,"par"));
