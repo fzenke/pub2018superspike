@@ -44,24 +44,24 @@ We have tested this with commit 6f88977da186e874c75ce3cdbba59d83748fe53c.
 
 ## Quick start
 
-* Check out the repository and cd into the ```sim/``` directory.
+* Check out the repository and change into the ```sim/``` directory.
 * Edit the Makefile and make sure the variable ```AURYNDIR``` points to your Auryn root directory.
 * Run ```make```
-* Run the script ```run_symfb.sh``` which will launch a simulation with one hidden layer with symmetric feedback (```run_rfb.sh``` will launch the same sim with random feedback).
+* Run the script ```run_symfb.sh``` which will launch a simulation with one hidden layer and symmetric error feedback (```run_rfb.sh``` will launch the same sim with random feedback).
 
 
 ### Inputs
 
-This example simulation uses the Oxford themed target spiketrain from the ```themes``` directory. Input and targe spike trains are provided in the humand readable ```ras``` format (https://fzenke.net/auryn/doku.php?id=manual:ras). 
+This example simulation uses the Oxford themed (a picture of the Radcliffe Camera) target spiketrain from the ```themes``` directory. Input and targe spike trains are provided in the humand readable ```ras``` format (https://fzenke.net/auryn/doku.php?id=manual:ras). 
 
 
 ### Outputs 
-The scripts will generate their output in the ```.../output/``` directory. Specifically, the input spikes are written to ```multi_stim.0.spk```, the hidden layer spikes are written to ```multi_hidden.0.spk```  and out the output layer spikes are saved to ```output.0.spk```. The ```stats``` files contains a learning curve over training time.
+The above run scripts will generate their output in the ```.../output/``` directory. Specifically, the input spikes are written to ```multi_stim.0.spk```, the hidden layer spikes are written to ```multi_hidden.0.spk```  and the output layer spikes are saved to ```output.0.spk```. The ```stats``` file contains a learning curve over training time.
 
 
 ### Visualizing network activity 
 
-To plot the spikes you will have to decode the binary output format using ```aube``` which comes with the Auryn library (see https://fzenke.net/auryn/doku.php?id=manual:aube for details). The animation shown above gives one example of how such network activity evolves over the couse of training.
+To plot the spikes you will have to decode the binary output format using ```aube``` which comes with the Auryn library (see https://fzenke.net/auryn/doku.php?id=manual:aube for details). The animation shown above gives one example of how such network activity evolves over the course of training.
 
 
 
