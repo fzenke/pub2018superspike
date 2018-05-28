@@ -1,0 +1,2 @@
+# neurons 200, temporal resolution 0.010000s, time grid 1.890000s
+filename=oxford
