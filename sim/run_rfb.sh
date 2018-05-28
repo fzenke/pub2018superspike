@@ -2,6 +2,8 @@
 
 # Create temporary dir
 TMPDIR=`mktemp -d`
+trap "{ rm -rf $TMPDIR; }" EXIT
+
 
 EPSILON=1e-12
 NHID=256
@@ -12,8 +14,8 @@ source ../themes/${RUN}-conf.env
 echo GRID=$GRID
 echo HEIGHT=$HEIGHT
 
-# for ETA in 1e-3 5e-4 1e-4 5e-3 ;
-for ETA in 5e-4 ;
+for ETA in 1e-3 5e-4 1e-4 5e-3 ;
+# for ETA in 1e-3 ;
 do
 	OUTPUTDIR=../output/rfb/$RUN/eta$ETA
 	mkdir -p $OUTPUTDIR
@@ -21,5 +23,3 @@ do
 	cp $TMPDIR/*.stats $TMPDIR/*.spk $OUTPUTDIR
 done
 
-# Clean up
-rm -r $TMPDIR
