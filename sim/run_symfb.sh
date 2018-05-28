@@ -13,8 +13,8 @@ source ../themes/${RUN}-conf.env
 echo GRID=$GRID
 echo HEIGHT=$HEIGHT
 
-for ETA in 1e-3 5e-4 1e-4 5e-3 ;
-# for ETA in 1e-3 ;
+# for ETA in 1e-3 5e-4 1e-4 5e-3 ;
+for ETA in 1e-3 ;
 do
 	OUTPUTDIR=../output/symfb/$RUN/eta$ETA
 	mkdir -p $OUTPUTDIR
