@@ -4,12 +4,36 @@ This repository contains example code to accompany our paper
 
 Zenke, F., and Ganguli, S. (2018). SuperSpike: Supervised Learning in Multilayer Spiking Neural Networks. Neural Computation 30, 1514–1541.
 
-https://www.mitpressjournals.org/doi/abs/10.1162/neco_a_01086
+URL: https://www.mitpressjournals.org/doi/abs/10.1162/neco_a_01086
+
+![SuperSpike animation](https://raw.githubusercontent.com/fzenke/pub2018superspike/master/movie/oxford-opt.gif "SuperSpike animation")
+
+
+
+Bibtex:
+```
+@article{zenke_superspike:_2018,
+	title = {{SuperSpike}: {Supervised} {Learning} in {Multilayer} {Spiking} {Neural} {Networks}},
+	volume = {30},
+	issn = {0899-7667},
+	shorttitle = {{SuperSpike}},
+	url = {https://doi.org/10.1162/neco_a_01086},
+	doi = {10.1162/neco_a_01086},
+	number = {6},
+	journal = {Neural Computation},
+	author = {Zenke, Friedemann and Ganguli, Surya},
+	month = apr,
+	year = {2018},
+	pages = {1514--1541},
+}
+```
 
 
 ## Intro
 
-SuperSpike is an approximate surrogate gradient method. The algorithm runs fully online and constitutes a three-factor rule for training recurrent and multi-layer spiking neural networks to learn spatiotemporal input output mappings. The present repository introduces the key classes which allow SuperSpike to run using the Auryn library and illustrates how to train a simple three layer network using either random or symmetric error feedback. The code was refactored from the original classes used in the publication and should be considered alpha stage. Please report bugs on GitHub and use the forum (https://fzenke.net/auryn/forum/index.php) for questions and discussions.   
+SuperSpike is an approximate surrogate gradient method. The algorithm runs fully online and constitutes a three-factor rule capabable training recurrent and multi-layer spiking neural networks to perform complex spatiotemporal input output mappings. The present repository introduces the key classes extending the Auryn library to run SuperSpike and illustrates how to train a simple three layer network using either random or symmetric error feedback. 
+
+The present code was freshly optimized and should be considered alpha stage. Please report bugs on GitHub and use the forum (https://fzenke.net/auryn/forum/index.php) for questions and discussions.   
 
 
 ## Requirements
@@ -34,10 +58,8 @@ This example simulation uses the Oxford themed target spiketrain from the ```the
 ### Outputs 
 The scripts will generate their output in the ```.../output/``` directory. Specifically, the input spikes are written to ```multi_stim.0.spk```, the hidden layer spikes are written to ```multi_hidden.0.spk```  and out the output layer spikes are saved to ```output.0.spk```. The ```stats``` files contains a learning curve over training time.
 
+
 ### Visualizing network activity 
 
-To plot the spikes you will have to decode the binary output format using ```aube``` which comes with the Auryn library (see https://fzenke.net/auryn/doku.php?id=manual:aube for details).
+To plot the spikes you will have to decode the binary output format using ```aube``` which comes with the Auryn library (see https://fzenke.net/auryn/doku.php?id=manual:aube for details). The animation shown above gives one example of how such network activity evolves over the couse of training.
 
-Here is a visualization of the network activity during training in example simulation
-
-![SuperSpike animation](https://raw.githubusercontent.com/fzenke/pub2018superspike/master/movie/oxford-opt.gif "SuperSpike animation")
