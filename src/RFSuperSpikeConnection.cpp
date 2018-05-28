@@ -38,7 +38,7 @@ void RFSuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Aur
 
 	approximate = true; //!< when enabled small error signals are not back-propagated 
 	delta = 1e-5;    //!< quasi zero for presynaptic PSP
-	gamma = 1e-4;    //!< quasi zero norm for error signal ( this value should be set to float precision )
+	gamma = 1e-7;    //!< quasi zero norm for error signal ( this value should be set to float precision )
 
 
 	use_error_dependent_het_term = false;
