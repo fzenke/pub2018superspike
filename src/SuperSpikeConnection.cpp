@@ -31,6 +31,12 @@ void SuperSpikeConnection::init(AurynFloat eta, AurynFloat feedback_delay, Auryn
 	if ( !dst->evolve_locally() ) return;
 	logger->debug("SuperSpikeConnection init");
 
+	// we check this and throw an error if the user tries to run on more than one rank
+	if ( sys->get_com()->size() > 1 ) {
+		logger->msg("SuperSpikeConnection can currently not be run in parallel. Aborting.", ERROR);
+		throw AurynGenericException();
+	}
+
 	eta_ = eta;
 	auryn::logger->parameter("eta",eta);
 
